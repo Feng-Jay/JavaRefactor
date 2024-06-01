@@ -4,10 +4,10 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 
 ## Supported Refactor Methods
 
-- [ ] RenameVariable
+- [x] RenameVariable
 - [ ] BooleanExchange
 - [ ] InsertLogStatement
-- [ ] LoopExchange
+- [x] LoopExchange
 - [ ] ReorderStatement
 - [ ] ReorderCondition
 - [ ] SwitchToIf
