@@ -10,9 +10,6 @@ import utils.Scope;
 import static utils.LLogger.logger;
 
 public class renameVarVisitor extends ASTVisitor{
-    private Stack<Map<String, String>> varStack;
-
-    private Map<String, String> currentMap = new HashMap<>();
     private int _varCounter = 0;
     CompilationUnit _cu = null;
     private ASTRewrite _rewriter;
@@ -20,11 +17,9 @@ public class renameVarVisitor extends ASTVisitor{
     private Scope _rootScope = null;
     private Scope _currentScope = null;
 
-    public renameVarVisitor(CompilationUnit cu){
-        varStack = new Stack<>();
+    public renameVarVisitor(CompilationUnit cu, ASTRewrite rewrite){
         _cu = cu;
-        AST ast = cu.getAST();
-        _rewriter = ASTRewrite.create(ast);
+        _rewriter = rewrite;
     }
 
     public void addNewScope(int beginPos, int endPos){
@@ -77,12 +72,14 @@ public class renameVarVisitor extends ASTVisitor{
             if(!typeDecl.getName().toString().equals("FAKECLASS")){
                 popScope();
             }
+            return;
         }
         if(!(node instanceof Statement)){
             return;
         }
         if (node instanceof Block){
             popScope();
+            return;
         }
         ASTNode parent = node.getParent();
         if(parent == null){
@@ -114,6 +111,7 @@ public class renameVarVisitor extends ASTVisitor{
     public void preVisit(ASTNode node){
         if (node instanceof TypeDeclaration && !((TypeDeclaration) node).getName().toString().equals("FAKECLASS")){
             addNewScope("Class", node.getStartPosition(), node.getStartPosition() + node.getLength());
+            return;
         }
         if (node instanceof Block){
             addNewScope("Block", node.getStartPosition(), node.getStartPosition() + node.getLength());
