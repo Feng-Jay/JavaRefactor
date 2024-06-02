@@ -1,0 +1,16 @@
+public class FAKECLASS{
+  @Override public void skipValue() throws IOException {
+    if (peek() == JsonToken.NAME) {
+      nextName();
+      pathNames[stackSize - 2] = "null";
+    } else {
+      popStack();
+      if (stackSize > 0) {
+        pathNames[stackSize - 1] = "null";
+      }
+    }
+    if (stackSize > 0) {
+      pathIndices[stackSize - 1]++;
+    }
+  }
+}

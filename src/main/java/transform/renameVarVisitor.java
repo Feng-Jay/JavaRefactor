@@ -12,7 +12,7 @@ import static utils.LLogger.logger;
 public class renameVarVisitor extends ASTVisitor{
     private int _varCounter = 0;
     CompilationUnit _cu = null;
-    private ASTRewrite _rewriter;
+    private final ASTRewrite _rewriter;
 
     private Scope _rootScope = null;
     private Scope _currentScope = null;
@@ -74,11 +74,21 @@ public class renameVarVisitor extends ASTVisitor{
             }
             return;
         }
-        if(!(node instanceof Statement)){
-            return;
-        }
         if (node instanceof Block){
             popScope();
+            return;
+        }else if (node instanceof EnhancedForStatement){
+            popScope();
+        }else if (node instanceof ForStatement){
+            popScope();
+        }else if (node instanceof IfStatement){
+            popScope();
+        }else if (node instanceof CatchClause){
+            popScope();
+        }else if (node instanceof WhileStatement){
+            popScope();
+        }
+        if(!(node instanceof Statement)){
             return;
         }
         ASTNode parent = node.getParent();
@@ -103,7 +113,7 @@ public class renameVarVisitor extends ASTVisitor{
         }else if(parent instanceof WhileStatement && ((WhileStatement) parent).getBody().equals(node)){
             popScope();
         }else{
-            logger.info("Skip: " + node.getClass());
+//            logger.info("Skip: " + node.getClass());
         }
     }
 
@@ -116,6 +126,16 @@ public class renameVarVisitor extends ASTVisitor{
         if (node instanceof Block){
             addNewScope("Block", node.getStartPosition(), node.getStartPosition() + node.getLength());
             return;
+        }else if (node instanceof EnhancedForStatement){
+            addNewScope("ForEach", node.getStartPosition(), node.getStartPosition() + node.getLength());
+        }else if (node instanceof ForStatement){
+            addNewScope("ForStmt", node.getStartPosition(), node.getStartPosition() + node.getLength());
+        }else if (node instanceof IfStatement){
+            addNewScope("IfStmt", node.getStartPosition(), node.getStartPosition() + node.getLength());
+        }else if (node instanceof CatchClause){
+            addNewScope("Catch", node.getStartPosition(), node.getStartPosition() + node.getLength());
+        }else if (node instanceof WhileStatement){
+            addNewScope("While", node.getStartPosition(), node.getStartPosition() + node.getLength());
         }
         if (!(node instanceof Statement)){
             return;
@@ -143,7 +163,7 @@ public class renameVarVisitor extends ASTVisitor{
         }else if(parent instanceof WhileStatement && ((WhileStatement) parent).getBody().equals(node)){
             addNewScope("While-body", node.getStartPosition(), node.getStartPosition() + node.getLength());
         }else{
-            logger.info("Skip: " + node.getClass());
+//            logger.info("Skip: " + node.getClass());
         }
         return;
     }

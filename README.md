@@ -12,4 +12,3 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 - [ ] ReorderCondition
 - [ ] SwitchToIf
 - [ ] InsertUnusedStatement
-

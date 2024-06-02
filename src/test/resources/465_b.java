@@ -1,0 +1,8 @@
+public class FAKECLASS{
+        private void readTypeVariables() {
+            for (Type type : typeVariable.getBounds()) {
+                registerTypeVariablesOn(type);
+            }
+            registerTypeVariablesOn(getActualTypeArgumentFor(typeVariable));
+        }
+}
