@@ -27,6 +27,7 @@ public class loopTransVisitor extends ASTVisitor {
     }
     @Override
     public boolean visit(WhileStatement node){
+        logger.info("enter while");
         ForStatement newLoop = _rewriter.getAST().newForStatement();
         newLoop.setExpression((Expression) ASTNode.copySubtree(node.getAST(), node.getExpression()));
         newLoop.setBody((Statement) ASTNode.copySubtree(node.getAST(), node.getBody()));
@@ -43,6 +44,7 @@ public class loopTransVisitor extends ASTVisitor {
     }
     @Override
     public boolean visit(ForStatement node){
+        logger.info("enter for");
         WhileStatement newLoop = _rewriter.getAST().newWhileStatement();
         newLoop.setExpression((Expression) ASTNode.copySubtree(node.getAST(), node.getExpression()));
 

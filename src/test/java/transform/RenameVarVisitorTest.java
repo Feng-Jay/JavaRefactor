@@ -1,6 +1,5 @@
 package transform;
 
-import java.io.File;
 import java.net.URL;
 
 import org.eclipse.jdt.core.dom.AST;
@@ -13,7 +12,7 @@ import utils.JavaFile;
 
 import static utils.LLogger.logger;
 
-public class renameVarVisitorTest {
+public class RenameVarVisitorTest {
 
     private void acceptVisitor(String fileName){
         URL resource = getClass().getClassLoader().getResource(fileName);

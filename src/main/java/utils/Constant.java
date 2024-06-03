@@ -5,7 +5,8 @@ public class Constant {
     public static String transformedFilePath = "";
 
     public static boolean renameVar = false;
-    public static boolean transLoop = true;
+    public static boolean transLoop = false;
+    public static boolean switchToIf = true;
 }
 
 class FAKECLASS {
