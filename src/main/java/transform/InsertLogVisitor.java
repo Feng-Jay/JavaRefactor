@@ -31,11 +31,23 @@ public class InsertLogVisitor extends ASTVisitor {
         return node.getAST().newExpressionStatement(methodInvocation);
     }
 
+    private IfStatement getUnusedIfStmt(Block node){
+        IfStatement ifStatement = node.getAST().newIfStatement();
+        ifStatement.setExpression(node.getAST().newBooleanLiteral(false));
+        Block block = node.getAST().newBlock();
+        ExpressionStatement expressionStatement = getInsertedStmt(node);
+        block.statements().add(expressionStatement);
+        ifStatement.setThenStatement(block);
+        return ifStatement;
+    }
+
     @Override
     public boolean visit(Block node){
         ExpressionStatement insertedStmt = getInsertedStmt(node);
+        IfStatement unUsedStmt = getUnusedIfStmt(node);
 
         ListRewrite rewrite = _rewriter.getListRewrite(node, Block.STATEMENTS_PROPERTY);
+        rewrite.insertFirst(unUsedStmt, null);
         rewrite.insertLast(insertedStmt, null);
         return true;
     }

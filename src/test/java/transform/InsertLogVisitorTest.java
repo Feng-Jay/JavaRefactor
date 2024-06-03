@@ -32,6 +32,7 @@ public class InsertLogVisitorTest {
             }
         }
     }
+
     @Test
     public void testInsertLog(){
         for (int i =0; i < 483; ++i){
