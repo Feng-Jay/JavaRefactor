@@ -4,6 +4,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
+import transform.InsertLogVisitor;
 import transform.SwitchToIfVisitor;
 import transform.loopTransVisitor;
 import transform.renameVarVisitor;
@@ -37,6 +38,9 @@ public class Main {
         }
         if(Constant.switchToIf){
             currentJavaCode = transformSwitchIf(currentJavaCode);
+        }
+        if(Constant.insertLog){
+            currentJavaCode = transformInsertLog(currentJavaCode);
         }
         JavaFile.writeFile(currentJavaCode, Constant.transformedFilePath);
         logger.info("Transforming Done.");
@@ -94,6 +98,21 @@ public class Main {
         ASTRewrite rewriter = ASTRewrite.create(ast);
         cu.recordModifications();
         SwitchToIfVisitor visitor = new SwitchToIfVisitor(cu, rewriter);
+        cu.accept(visitor);
+        String transformedJavaCode = applyModification(rewriter, javaCode);
+        logger.info("Transforming Done.");
+        return transformedJavaCode;
+    }
+
+    public static String transformInsertLog(String javaCode){
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
+        parser.setSource(javaCode.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        AST ast = cu.getAST();
+        ASTRewrite rewriter = ASTRewrite.create(ast);
+        cu.recordModifications();
+        InsertLogVisitor visitor = new InsertLogVisitor(cu, rewriter);
         cu.accept(visitor);
         String transformedJavaCode = applyModification(rewriter, javaCode);
         logger.info("Transforming Done.");

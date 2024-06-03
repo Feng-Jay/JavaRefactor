@@ -6,7 +6,7 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 
 - [x] RenameVariable
 - [ ] BooleanExchange
-- [ ] InsertLogStatement
+- [x] InsertLogStatement
 - [x] LoopExchange
 - [ ] ReorderStatement
 - [ ] ReorderCondition
