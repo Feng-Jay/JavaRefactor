@@ -14,8 +14,11 @@ public class loopTransVisitor extends ASTVisitor {
 
     ASTRewrite _rewriter;
 
-    public loopTransVisitor(ASTRewrite rewriter){
+    CompilationUnit _cu;
+
+    public loopTransVisitor(CompilationUnit cu, ASTRewrite rewriter){
         _rewriter = rewriter;
+        _cu = cu;
     }
 
     @Override
@@ -40,6 +43,44 @@ public class loopTransVisitor extends ASTVisitor {
     }
     @Override
     public boolean visit(ForStatement node){
-        return false;
+        WhileStatement newLoop = _rewriter.getAST().newWhileStatement();
+        newLoop.setExpression((Expression) ASTNode.copySubtree(node.getAST(), node.getExpression()));
+
+        Block whileBody = node.getAST().newBlock();
+        Statement forBody = node.getBody();
+        if (forBody instanceof Block){
+            whileBody = (Block) ASTNode.copySubtree(node.getAST(), node.getBody());
+        }else{
+            whileBody.statements().add(ASTNode.copySubtree(node.getAST(), forBody));
+        }
+
+        for (Object updater: node.updaters()){
+            ExpressionStatement tmp = _rewriter.getAST().newExpressionStatement((Expression) ASTNode.copySubtree(node.getAST(), (ASTNode) updater));
+            whileBody.statements().add(tmp);
+        }
+        newLoop.setBody(whileBody);
+
+        ASTNode parent = node.getParent();
+        while (parent != null && !(parent instanceof Block)){
+            parent = parent.getParent();
+        }
+
+        if(parent == null){
+            logger.error("Can not find parent of ForLoop");
+            System.exit(-1);
+        }
+
+        // Move initializations outside the while loop
+        ListRewrite listRewrite = _rewriter.getListRewrite(parent, Block.STATEMENTS_PROPERTY);
+        for (Object initializer : node.initializers()) {
+            ExpressionStatement tmp = _rewriter.getAST().newExpressionStatement((Expression) ASTNode.copySubtree(node.getAST(), (ASTNode) initializer));
+            listRewrite.insertBefore(tmp, node, null);
+        }
+
+        listRewrite.replace(node, newLoop, null);
+
+        // continue visit body
+        newLoop.getBody().accept(this);
+        return true;
     }
 }

@@ -1,13 +1,16 @@
 public class FAKECLASS {
-
-    public void displayInner() {
-        int a = 100000;
-        if(true){
-            a = 222;
-        }else if(true){
-            a = 123;
-        }else{
-            a = 12333;
+    public static int sumNumbers(int[] numbers) {
+        int sum = 0;
+        while (sum >= 0){
+            sum += 1;
+            for (int i = 0; i < numbers.length; i++) {
+                sum += numbers[i];
+            }
+            sum -= 1;
+            sum ++;
+            sum --;
+            sum ++;
         }
+        return sum;
     }
 }
