@@ -8,7 +8,7 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 - [ ] BooleanExchange
 - [x] InsertLogStatement
 - [x] LoopExchange
-- [ ] ReorderStatement
 - [ ] ReorderCondition
 - [x] SwitchToIf
 - [x] InsertUnusedStatement
+- [ ] ReorderStatement

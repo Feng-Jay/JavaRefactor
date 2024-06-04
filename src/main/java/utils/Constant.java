@@ -7,7 +7,8 @@ public class Constant {
     public static boolean renameVar = false;
     public static boolean transLoop = false;
     public static boolean switchToIf = false;
-    public static boolean insertLog = true;
+    public static boolean insertLog = false;
+    public static boolean reorderCondition = true;
 }
 
 class FAKECLASS {
