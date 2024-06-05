@@ -12,7 +12,7 @@ import java.net.URL;
 
 import static utils.LLogger.logger;
 
-public class loopTransVisitorTest {
+public class RenameMethodVisitorTest {
     private void acceptVisitor(String fileName){
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource == null){
@@ -27,13 +27,13 @@ public class loopTransVisitorTest {
             ASTRewrite rewriter = ASTRewrite.create(ast);
             cu.recordModifications();
             if(Constant.renameVar){
-                LoopTransVisitor visitor = new LoopTransVisitor(cu, rewriter);
+                RenameMethodVisitor visitor = new RenameMethodVisitor(cu, rewriter);
                 cu.accept(visitor);
             }
         }
     }
     @Test
-    public void testLoopTrans(){
+    public void testRenameMethod(){
         for (int i =0; i < 483; ++i){
             String buggy_file_name = i + "_b.java";
             String fixed_file_name = i + "_f.java";

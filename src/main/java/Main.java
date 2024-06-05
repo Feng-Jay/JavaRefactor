@@ -100,7 +100,7 @@ public class Main {
         AST ast = cu.getAST();
         ASTRewrite rewriter = ASTRewrite.create(ast);
         cu.recordModifications();
-        loopTransVisitor visitor = new loopTransVisitor(cu, rewriter);
+        LoopTransVisitor visitor = new LoopTransVisitor(cu, rewriter);
         cu.accept(visitor);
         String transformedJavaCode = applyModification(rewriter, javaCode);
         logger.info("Transforming Done.");

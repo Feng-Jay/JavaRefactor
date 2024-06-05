@@ -5,8 +5,10 @@ public class FAKECLASS {
         boolean b = true;
         boolean d = false;
         boolean e = false;
-        if (a && b && c && d && e && f){
+        if (a || b && c || d && e || f || g && h){
             return null;
+        }else{
+            return "";
         }
     }
 

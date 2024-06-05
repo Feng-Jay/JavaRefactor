@@ -10,13 +10,13 @@ import static utils.LLogger.logger;
 /**
  * Transform between For-Loop and While-Loop
  */
-public class loopTransVisitor extends ASTVisitor {
+public class LoopTransVisitor extends ASTVisitor {
 
     ASTRewrite _rewriter;
 
     CompilationUnit _cu;
 
-    public loopTransVisitor(CompilationUnit cu, ASTRewrite rewriter){
+    public LoopTransVisitor(CompilationUnit cu, ASTRewrite rewriter){
         _rewriter = rewriter;
         _cu = cu;
     }
