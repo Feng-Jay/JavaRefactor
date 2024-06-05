@@ -1,6 +1,6 @@
 public class FAKECLASS {
 
-    public static String getDayString(int day) {
+    public static String methodName(int day) {
         boolean a = false;
         boolean b = true;
         boolean d = false;

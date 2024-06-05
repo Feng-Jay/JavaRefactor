@@ -28,7 +28,7 @@ public class RenameVarVisitorTest {
             ASTRewrite rewriter = ASTRewrite.create(ast);
             cu.recordModifications();
             if(Constant.renameVar){
-                renameVarVisitor visitor = new renameVarVisitor(cu, rewriter);
+                RenameVarVisitor visitor = new RenameVarVisitor(cu, rewriter);
                 cu.accept(visitor);
             }
         }

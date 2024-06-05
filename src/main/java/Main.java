@@ -27,6 +27,9 @@ public class Main {
     }
     private static void transform(String javaCode){
         String currentJavaCode = javaCode;
+        if(Constant.renameMethod){
+            currentJavaCode = transformRenameMethod(currentJavaCode);
+        }
         if(Constant.renameVar){
             currentJavaCode = transformRenameVar(currentJavaCode);
         }
@@ -59,6 +62,21 @@ public class Main {
         return document.get();
     }
 
+    public static String transformRenameMethod(String javaCode){
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
+        parser.setSource(javaCode.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        AST ast = cu.getAST();
+        ASTRewrite rewriter = ASTRewrite.create(ast);
+        cu.recordModifications();
+        RenameMethodVisitor visitor = new RenameMethodVisitor(cu, rewriter);
+        cu.accept(visitor);
+        String transformedJavaCode = applyModification(rewriter, javaCode);
+        logger.info("Transforming Done.");
+        return transformedJavaCode;
+    }
+
     public static String transformRenameVar(String javaCode){
         ASTParser parser = ASTParser.newParser(AST.JLS8);
         parser.setSource(javaCode.toCharArray());
@@ -67,7 +85,7 @@ public class Main {
         AST ast = cu.getAST();
         ASTRewrite rewriter = ASTRewrite.create(ast);
         cu.recordModifications();
-        renameVarVisitor visitor = new renameVarVisitor(cu, rewriter);
+        RenameVarVisitor visitor = new RenameVarVisitor(cu, rewriter);
         cu.accept(visitor);
         String transformedJavaCode = applyModification(rewriter, javaCode);
         logger.info("Transforming Done.");

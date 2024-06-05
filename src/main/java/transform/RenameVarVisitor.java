@@ -2,14 +2,9 @@ package transform;
 
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
 import utils.Scope;
 
-import static utils.LLogger.logger;
-
-public class renameVarVisitor extends ASTVisitor{
+public class RenameVarVisitor extends ASTVisitor{
     private int _varCounter = 0;
     CompilationUnit _cu = null;
     private final ASTRewrite _rewriter;
@@ -17,7 +12,7 @@ public class renameVarVisitor extends ASTVisitor{
     private Scope _rootScope = null;
     private Scope _currentScope = null;
 
-    public renameVarVisitor(CompilationUnit cu, ASTRewrite rewrite){
+    public RenameVarVisitor(CompilationUnit cu, ASTRewrite rewrite){
         _cu = cu;
         _rewriter = rewrite;
     }
