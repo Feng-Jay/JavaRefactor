@@ -5,25 +5,11 @@ public class FAKECLASS {
         boolean b = true;
         boolean d = false;
         boolean e = false;
-        if (a) {
-			return null;
-		} else if (b) {
-			if (c) {
-				return null;
-			}
-		} else if (d) {
-			if (e) {
-				return null;
-			}
-		} else if (f) {
-			return null;
-		} else if (g) {
-			if (h) {
-				return null;
-			}
-		} else {
-			return "";
-		}
+        if (!(!(a || b && c || d && e || f || g && h))){
+            return null;
+        }else{
+            return "";
+        }
     }
 
 }

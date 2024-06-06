@@ -45,6 +45,9 @@ public class Main {
         if(Constant.reorderCondition){
             currentJavaCode = transformReorderCondition(currentJavaCode);
         }
+        if(Constant.negateCondition){
+            currentJavaCode = transformNegateCondition(currentJavaCode);
+        }
         JavaFile.writeFile(currentJavaCode, Constant.transformedFilePath);
         logger.info("Transforming Done.");
     }
@@ -146,6 +149,21 @@ public class Main {
         ASTRewrite rewriter = ASTRewrite.create(ast);
         cu.recordModifications();
         ReorderConditionVisitor visitor = new ReorderConditionVisitor(cu, rewriter);
+        cu.accept(visitor);
+        String transformedJavaCode = applyModification(rewriter, javaCode);
+        logger.info("Transforming Done.");
+        return transformedJavaCode;
+    }
+
+    public static String transformNegateCondition(String javaCode){
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
+        parser.setSource(javaCode.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        AST ast = cu.getAST();
+        ASTRewrite rewriter = ASTRewrite.create(ast);
+        cu.recordModifications();
+        NegateConditionVisitor visitor = new NegateConditionVisitor(cu, rewriter);
         cu.accept(visitor);
         String transformedJavaCode = applyModification(rewriter, javaCode);
         logger.info("Transforming Done.");
