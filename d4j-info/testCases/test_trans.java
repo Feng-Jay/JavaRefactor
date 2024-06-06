@@ -1,15 +1,38 @@
-public class FAKECLASS {
+public class FAKECLASS{
+    private void init() {
+        thisYear= Calendar.getInstance(timeZone, locale).get(Calendar.YEAR);
 
-    public static String getDayString(int day) {
-        boolean a = false;
-        boolean b = true;
-        boolean d = false;
-        boolean e = false;
-        if (!(!(a || b && c || d && e || f || g && h))){
-            return null;
-        }else{
-            return "";
+        nameValues= new ConcurrentHashMap<Integer, KeyValue[]>();
+
+        StringBuilder regex= new StringBuilder();
+        List<Strategy> collector = new ArrayList<Strategy>();
+
+        Matcher patternMatcher= formatPattern.matcher(pattern);
+        if(!patternMatcher.lookingAt()) {
+            throw new IllegalArgumentException("Invalid pattern");
         }
-    }
 
+        currentFormatField= patternMatcher.group();
+        Strategy currentStrategy= getStrategy(currentFormatField);
+        while (true) {
+			patternMatcher.region(patternMatcher.end(), patternMatcher.regionEnd());
+			if (!patternMatcher.lookingAt()) {
+				nextStrategy = null;
+				break;
+			}
+			String nextFormatField = patternMatcher.group();
+			nextStrategy = getStrategy(nextFormatField);
+			if (currentStrategy.addRegex(this, regex)) {
+				collector.add(currentStrategy);
+			}
+			currentFormatField = nextFormatField;
+			currentStrategy = nextStrategy;
+		}
+        if(currentStrategy.addRegex(this, regex)) {
+            collector.add(currentStrategy);
+        }
+        currentFormatField= null;
+        strategies= collector.toArray(new Strategy[collector.size()]);
+        parsePattern= Pattern.compile(regex.toString());
+    }
 }

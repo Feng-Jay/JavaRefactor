@@ -45,8 +45,12 @@ public class LoopTransVisitor extends ASTVisitor {
     @Override
     public boolean visit(ForStatement node){
         logger.info("enter for");
+        logger.info(node.toString());
         WhileStatement newLoop = _rewriter.getAST().newWhileStatement();
-        newLoop.setExpression((Expression) ASTNode.copySubtree(node.getAST(), node.getExpression()));
+        if(node.getExpression() != null)
+            newLoop.setExpression((Expression) ASTNode.copySubtree(node.getAST(), node.getExpression()));
+        else
+            newLoop.setExpression(node.getAST().newBooleanLiteral(true));
 
         Block whileBody = node.getAST().newBlock();
         Statement forBody = node.getBody();
@@ -63,7 +67,7 @@ public class LoopTransVisitor extends ASTVisitor {
         newLoop.setBody(whileBody);
 
         ASTNode parent = node.getParent();
-        while (parent != null && !(parent instanceof Block)){
+        while (parent != null && !(parent instanceof Block) && !(parent instanceof SwitchStatement) ){
             parent = parent.getParent();
         }
 
@@ -73,10 +77,22 @@ public class LoopTransVisitor extends ASTVisitor {
         }
 
         // Move initializations outside the while loop
-        ListRewrite listRewrite = _rewriter.getListRewrite(parent, Block.STATEMENTS_PROPERTY);
+        ListRewrite listRewrite = null;
+        if(parent instanceof Block)
+            listRewrite = _rewriter.getListRewrite(parent, Block.STATEMENTS_PROPERTY);
+        else if(parent instanceof SwitchStatement)
+            listRewrite = _rewriter.getListRewrite(parent, SwitchStatement.STATEMENTS_PROPERTY);
+
         for (Object initializer : node.initializers()) {
             ExpressionStatement tmp = _rewriter.getAST().newExpressionStatement((Expression) ASTNode.copySubtree(node.getAST(), (ASTNode) initializer));
-            listRewrite.insertBefore(tmp, node, null);
+            try {
+                listRewrite.insertBefore(tmp, node, null);
+            } catch (IllegalArgumentException e) {
+                logger.info(listRewrite.getOriginalList().toString());
+                logger.info(tmp.toString());
+                logger.info(node.toString());
+                logger.error("Failed to insert node: " + e.getMessage());
+            }
         }
 
         listRewrite.replace(node, newLoop, null);

@@ -6,9 +6,9 @@ public class Constant {
 
     public static boolean renameMethod = false;
     public static boolean renameVar = false;
-    public static boolean transLoop = false;
+    public static boolean transLoop = true;
     public static boolean switchToIf = false;
     public static boolean insertLog = false;
     public static boolean reorderCondition = false;
-    public static boolean negateCondition = true;
+    public static boolean negateCondition = false;
 }
