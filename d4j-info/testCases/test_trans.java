@@ -1,38 +1,7 @@
 public class FAKECLASS{
-    private void init() {
-        thisYear= Calendar.getInstance(timeZone, locale).get(Calendar.YEAR);
-
-        nameValues= new ConcurrentHashMap<Integer, KeyValue[]>();
-
-        StringBuilder regex= new StringBuilder();
-        List<Strategy> collector = new ArrayList<Strategy>();
-
-        Matcher patternMatcher= formatPattern.matcher(pattern);
-        if(!patternMatcher.lookingAt()) {
-            throw new IllegalArgumentException("Invalid pattern");
-        }
-
-        currentFormatField= patternMatcher.group();
-        Strategy currentStrategy= getStrategy(currentFormatField);
-        while (true) {
-			patternMatcher.region(patternMatcher.end(), patternMatcher.regionEnd());
-			if (!patternMatcher.lookingAt()) {
-				nextStrategy = null;
-				break;
-			}
-			String nextFormatField = patternMatcher.group();
-			nextStrategy = getStrategy(nextFormatField);
-			if (currentStrategy.addRegex(this, regex)) {
-				collector.add(currentStrategy);
-			}
-			currentFormatField = nextFormatField;
-			currentStrategy = nextStrategy;
-		}
-        if(currentStrategy.addRegex(this, regex)) {
-            collector.add(currentStrategy);
-        }
-        currentFormatField= null;
-        strategies= collector.toArray(new Strategy[collector.size()]);
-        parsePattern= Pattern.compile(regex.toString());
+    public ValueMarker(double TRANSVAR0, Paint TRANSVAR1, Stroke TRANSVAR2,
+                       Paint TRANSVAR3, Stroke TRANSVAR4, float TRANSVAR5) {
+        super(TRANSVAR1, TRANSVAR2, TRANSVAR1, TRANSVAR2, TRANSVAR5);
+        this.value = TRANSVAR0;
     }
 }

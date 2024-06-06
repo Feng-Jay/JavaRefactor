@@ -4,6 +4,8 @@ import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import utils.Scope;
 
+import static utils.LLogger.logger;
+
 public class RenameVarVisitor extends ASTVisitor{
     private int _varCounter = 0;
     CompilationUnit _cu = null;
@@ -55,12 +57,36 @@ public class RenameVarVisitor extends ASTVisitor{
         return true;
     }
 
+    public boolean isVarReplace(ASTNode node){
+        ASTNode parent = node.getParent();
+        if(parent instanceof MethodInvocation){
+            MethodInvocation methodInvocation = (MethodInvocation) parent;
+            if(methodInvocation.getName().equals(node)){
+                return false;
+            }
+        }else if(parent instanceof SuperMethodInvocation){
+            SuperMethodInvocation superMethodInvocation = (SuperMethodInvocation) parent;
+            if(superMethodInvocation.getName().equals(node)){
+                return false;
+            }
+        }else if(parent instanceof FieldAccess){
+            FieldAccess fieldAccess = (FieldAccess) parent;
+            if(fieldAccess.getName().equals(node)){
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public void postVisit(ASTNode node){
         if(node instanceof SimpleName && _currentScope.haveVar(node.toString())){
-            AST ast = node.getAST();
-            SimpleName newName = ast.newSimpleName(_currentScope.getReplaceName(node.toString()));
-            _rewriter.replace(node, newName, null);
+            logger.info(node.toString() + "; parent: " + node.getParent().toString() + ", " + node.getParent().getClass());
+            ASTNode parent = node.getParent();
+            if (isVarReplace(node)){
+                AST ast = node.getAST();
+                SimpleName newName = ast.newSimpleName(_currentScope.getReplaceName(node.toString()));
+                _rewriter.replace(node, newName, null);
+            }
         }
         if(node instanceof TypeDeclaration){
             TypeDeclaration typeDecl = (TypeDeclaration) node;

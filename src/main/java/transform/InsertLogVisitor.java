@@ -47,7 +47,19 @@ public class InsertLogVisitor extends ASTVisitor {
         IfStatement unUsedStmt = getUnusedIfStmt(node);
 
         ListRewrite rewrite = _rewriter.getListRewrite(node, Block.STATEMENTS_PROPERTY);
-        rewrite.insertFirst(unUsedStmt, null);
+        boolean insertFirst = true;
+        for(Object stmt: node.statements()){
+            if(stmt instanceof SuperConstructorInvocation){
+                insertFirst = false;
+                break;
+            }
+        }
+        if(insertFirst)
+            rewrite.insertFirst(unUsedStmt, null);
+        for (Object stmt: node.statements()){
+            if(stmt instanceof ReturnStatement)
+                return true;
+        }
         rewrite.insertLast(insertedStmt, null);
         return true;
     }
