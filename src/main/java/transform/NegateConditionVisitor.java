@@ -16,6 +16,7 @@ public class NegateConditionVisitor extends ASTVisitor {
 
     public Expression makeNegativeExpr(Expression expr, ASTNode oriNode){
         ParenthesizedExpression parenthesizedExpression = oriNode.getAST().newParenthesizedExpression();
+        logger.info(oriNode.toString());
         parenthesizedExpression.setExpression((Expression) ASTNode.copySubtree(oriNode.getAST(), expr));
 
         PrefixExpression notExpr = oriNode.getAST().newPrefixExpression();
@@ -34,6 +35,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(WhileStatement node){
         Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
         Expression newExpr = makeNegativeExpr(expr, node);
         _rewriter.replace(node.getExpression(), newExpr, null);
         return true;
@@ -42,6 +45,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(IfStatement node){
         Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
         Expression newExpr = makeNegativeExpr(expr, node);
         logger.info(newExpr.toString());
         _rewriter.replace(node.getExpression(), newExpr, null);
@@ -51,6 +56,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(AssertStatement node){
         Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
         Expression newExpr = makeNegativeExpr(expr, node);
         _rewriter.replace(node.getExpression(), newExpr, null);
         return true;
@@ -59,6 +66,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(ForStatement node){
         Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
         Expression newExpr = makeNegativeExpr(expr, node);
         _rewriter.replace(node.getExpression(), newExpr, null);
         return true;
@@ -67,6 +76,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(DoStatement node){
         Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
         Expression newExpr = makeNegativeExpr(expr, node);
         _rewriter.replace(node.getExpression(), newExpr, null);
         return true;
@@ -75,6 +86,8 @@ public class NegateConditionVisitor extends ASTVisitor {
     @Override
     public boolean visit(ExpressionStatement node){
        Expression expr = node.getExpression();
+        if(expr == null)
+            return true;
        if(expr instanceof ConditionalExpression){
            ConditionalExpression conditionExpr = (ConditionalExpression) expr;
            Expression newExpr = makeNegativeExpr(conditionExpr.getExpression(), node);
