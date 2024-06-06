@@ -74,6 +74,11 @@ public class RenameVarVisitor extends ASTVisitor{
             if(fieldAccess.getName().equals(node)){
                 return false;
             }
+        }else if(parent instanceof QualifiedName){
+            QualifiedName qualifiedName = (QualifiedName) parent;
+            if(qualifiedName.getName().equals(node)){
+                return false;
+            }
         }
         return true;
     }

@@ -3,5 +3,6 @@ public class FAKECLASS{
                        Paint TRANSVAR3, Stroke TRANSVAR4, float TRANSVAR5) {
         super(TRANSVAR1, TRANSVAR2, TRANSVAR1, TRANSVAR2, TRANSVAR5);
         this.value = TRANSVAR0;
+        boolean TRANSVAR6 = options.test != DevMode.OFF;
     }
 }

@@ -3,5 +3,6 @@ public class FAKECLASS{
                        Paint outlinePaint, Stroke outlineStroke, float alpha) {
         super(paint, stroke, paint, stroke, alpha);
         this.value = value;
+        boolean test = options.test != DevMode.OFF;
     }
 }
