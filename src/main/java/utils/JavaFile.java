@@ -119,6 +119,16 @@ public class JavaFile {
         }
     }
 
+    public static void writeFile(String content, String filePath, boolean append) {
+        File file = new File(filePath);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, append))) {
+            writer.write(content);
+        } catch (IOException e) {
+            logger.error("Wtring to file: " + filePath + " failed!!!");
+            System.exit(-1);
+        }
+    }
+
     public static String join(char delimiter, String... element) {
         return join(delimiter, Arrays.asList(element));
     }

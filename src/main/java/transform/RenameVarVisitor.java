@@ -2,6 +2,7 @@ package transform;
 
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import utils.JavaFile;
 import utils.Scope;
 
 import static utils.LLogger.logger;
@@ -38,6 +39,11 @@ public class RenameVarVisitor extends ASTVisitor{
     @Override
     public boolean visit(SingleVariableDeclaration node){
         _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
+
+        // generate rename information
+        SingleVariableDeclaration tmp = (SingleVariableDeclaration) ASTNode.copySubtree(node.getAST(), node);
+        tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
+        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "#" + tmp.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
         _varCounter ++;
         return true;
     }
@@ -45,6 +51,9 @@ public class RenameVarVisitor extends ASTVisitor{
     @Override
     public boolean visit(VariableDeclarationFragment node){
         _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
+        VariableDeclarationFragment tmp = (VariableDeclarationFragment) ASTNode.copySubtree(node.getAST(), node);
+        tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
+        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "#" + tmp.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
         _varCounter++;
         return true;
     }

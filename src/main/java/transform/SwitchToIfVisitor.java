@@ -2,6 +2,8 @@ package transform;
 
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import static utils.LLogger.logger;
+import java.util.List;
 
 public class SwitchToIfVisitor extends ASTVisitor {
 
@@ -15,6 +17,9 @@ public class SwitchToIfVisitor extends ASTVisitor {
     @Override
     public boolean visit(SwitchStatement node){
         AST ast = node.getAST();
+        if (node.getExpression() instanceof MethodInvocation){
+            return true;
+        }
 
         IfStatement firstIfStatement = null;
         IfStatement lastIfStatement = null;
@@ -35,6 +40,18 @@ public class SwitchToIfVisitor extends ASTVisitor {
                     if (firstIfStatement == null){
                         firstIfStatement = ifStatement;
                     }else{
+                        Block oriBlock = (Block) lastIfStatement.getThenStatement();
+                        List<Object> oriBlockStmts = oriBlock.statements();
+                        boolean add = true;
+                        for(Object stmt: oriBlockStmts){
+                            if(stmt instanceof BreakStatement){
+                                add = false;
+                                break;
+                            }
+                        }
+                        if(add){
+                            ifStatement.setThenStatement((Statement) ASTNode.copySubtree(lastIfStatement.getAST(), lastIfStatement.getThenStatement()));
+                        }
                         lastIfStatement.setElseStatement(ifStatement);
                     }
                     lastIfStatement = ifStatement;
@@ -55,7 +72,16 @@ public class SwitchToIfVisitor extends ASTVisitor {
                     block = ast.newBlock();
                     lastIfStatement.setThenStatement(block);
                 }
-                block.statements().add(statement);
+                if(statement instanceof Block){
+                    Block block1 = (Block) statement;
+                    for (Object stmt: block1.statements()){
+//                        logger.info(stmt.toString());
+                        if(!(stmt instanceof BreakStatement))
+                            block.statements().add(ASTNode.copySubtree(ast, (ASTNode) stmt));
+                    }
+                }
+                else if(!(statement instanceof BreakStatement))
+                    block.statements().add(statement);
             }
         }
         _rewriter.replace(node, firstIfStatement, null);

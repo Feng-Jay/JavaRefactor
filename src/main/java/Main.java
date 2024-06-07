@@ -16,9 +16,8 @@ public class Main {
             logger.error("Illegal Parameters!!!");
             System.exit(-1);
         }
-
         Constant.beforeFilePath = args[0];
-        Constant.transformedFilePath  =args[1];
+        Constant.transformedFilePath = args[1];
         logger.info("InputFilePath: " + Constant.beforeFilePath);
         logger.info("OutputFilePath: " + Constant.transformedFilePath);
         logger.info("Please keep each java file only have one method!!!");

@@ -131,7 +131,9 @@ public class ReorderConditionVisitor extends ASTVisitor {
         List<Expression> subExprs = new ArrayList<>();
 
         if (isExtended(expression)){
-            return makeNewIf(expression, node);
+            IfStatement ifStatement = makeNewIf(expression, node);
+            ifStatement.setElseStatement((Statement) ASTNode.copySubtree(ast, elseStmt));
+            return ifStatement;
         }else{
             parseInfixExpr(expression, subExprs);
             if(subExprs.isEmpty()){

@@ -49,18 +49,18 @@ public class InsertLogVisitor extends ASTVisitor {
         ListRewrite rewrite = _rewriter.getListRewrite(node, Block.STATEMENTS_PROPERTY);
         boolean insertFirst = true;
         for(Object stmt: node.statements()){
-            if(stmt instanceof SuperConstructorInvocation){
+            if(stmt instanceof SuperConstructorInvocation || stmt instanceof ConstructorInvocation){
                 insertFirst = false;
                 break;
             }
         }
         if(insertFirst)
             rewrite.insertFirst(unUsedStmt, null);
-        for (Object stmt: node.statements()){
-            if(stmt instanceof ReturnStatement)
-                return true;
-        }
-        rewrite.insertLast(insertedStmt, null);
+//        for (Object stmt: node.statements()){
+//            if(stmt instanceof ReturnStatement)
+//                return true;
+//        }
+//        rewrite.insertLast(insertedStmt, null);
         return true;
     }
 }
