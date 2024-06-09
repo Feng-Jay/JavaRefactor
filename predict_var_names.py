@@ -114,9 +114,8 @@ class GeneralLLM(object):
         return True, len(outputs) > 0, outputs, entropies
 
 
-def predict_var_name(prompt):
-
+def generate_output():
 
 
 if __name__ == "__main__":
-        
+    

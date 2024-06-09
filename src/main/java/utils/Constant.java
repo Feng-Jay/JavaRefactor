@@ -1,6 +1,12 @@
 package utils;
 
+import java.io.*;
+import java.util.Properties;
+
+import static utils.LLogger.logger;
+
 public class Constant {
+    public final static String HOME = System.getProperty("user.dir");
     public static String beforeFilePath = "";
     public static String transformedFilePath = "";
     public static boolean renameMethod = false;
@@ -10,4 +16,22 @@ public class Constant {
     public static boolean insertLog = true;
     public static boolean reorderCondition = true;
     public static boolean negateCondition = true;
+
+    static {
+        Properties prop = new Properties();
+        try{
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(HOME + "/src/main/resources/setting.properties"));
+            prop.load(inputStream);
+            renameMethod = prop.getProperty("renameMethod", "false").equals("true");
+            renameVar = prop.getProperty("renameVar", "true").equals("true");
+            transLoop = prop.getProperty("transLoop", "true").equals("true");
+            switchToIf = prop.getProperty("switchToIf", "true").equals("true");
+            insertLog = prop.getProperty("insertLog", "true").equals("true");
+            reorderCondition = prop.getProperty("reorderCondition", "true").equals("true");
+            negateCondition = prop.getProperty("negateCondition", "true").equals("true");
+        } catch (IOException e) {
+            logger.error("failed to load configure file...");
+            throw new RuntimeException(e);
+        }
+    }
 }

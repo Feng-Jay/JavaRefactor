@@ -44,7 +44,7 @@ public class SwitchToIfVisitor extends ASTVisitor {
                         List<Object> oriBlockStmts = oriBlock.statements();
                         boolean add = true;
                         for(Object stmt: oriBlockStmts){
-                            if(stmt instanceof BreakStatement){
+                            if(stmt instanceof BreakStatement || stmt instanceof ReturnStatement){
                                 add = false;
                                 break;
                             }
