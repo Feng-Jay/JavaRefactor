@@ -39,21 +39,33 @@ public class RenameVarVisitor extends ASTVisitor{
     @Override
     public boolean visit(SingleVariableDeclaration node){
         _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
-
         // generate rename information
         SingleVariableDeclaration tmp = (SingleVariableDeclaration) ASTNode.copySubtree(node.getAST(), node);
         tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
-//        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "#" + tmp.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
+//        logger.info("SVD:" + node.toString());
+        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier() + "$" + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
         _varCounter ++;
         return true;
     }
 
     @Override
     public boolean visit(VariableDeclarationFragment node){
+        String type = "";
+        if (node.getParent() instanceof VariableDeclarationStatement){
+            VariableDeclarationStatement tmpParent = (VariableDeclarationStatement) node.getParent();
+//            logger.info("Test type: " + tmpParent.getType());
+            type = tmpParent.getType().toString();
+        }else if (node.getParent() instanceof VariableDeclarationExpression){
+            VariableDeclarationExpression tmpParent = (VariableDeclarationExpression) node.getParent();
+//            logger.info("Other types: " + String.valueOf(node.getParent().getClass()));
+            type = tmpParent.getType().toString();
+        }else{
+            logger.info("Other types!");
+        }
         _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
         VariableDeclarationFragment tmp = (VariableDeclarationFragment) ASTNode.copySubtree(node.getAST(), node);
         tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
-//        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "#" + tmp.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
+        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) +  "$" + node.getName().getIdentifier() +"$" + type + " " + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
         _varCounter++;
         return true;
     }
