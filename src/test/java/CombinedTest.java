@@ -11,13 +11,13 @@ import static utils.LLogger.logger;
 public class CombinedTest {
     private void transform(String javaCode){
         String currentJavaCode = javaCode;
-//        currentJavaCode = Main.transformRenameMethod(currentJavaCode);
+        currentJavaCode = Main.transformRenameMethod(currentJavaCode);
         currentJavaCode = Main.transformRenameVar(currentJavaCode);
-//        currentJavaCode = Main.transformLoopTrans(currentJavaCode);
-//        currentJavaCode = Main.transformSwitchIf(currentJavaCode);
-//        currentJavaCode = Main.transformInsertLog(currentJavaCode);
-//        currentJavaCode = Main.transformReorderCondition(currentJavaCode);
-//        currentJavaCode = Main.transformNegateCondition(currentJavaCode);
+        currentJavaCode = Main.transformLoopTrans(currentJavaCode);
+        currentJavaCode = Main.transformSwitchIf(currentJavaCode);
+        currentJavaCode = Main.transformInsertLog(currentJavaCode);
+        currentJavaCode = Main.transformReorderCondition(currentJavaCode);
+        currentJavaCode = Main.transformNegateCondition(currentJavaCode);
         logger.info("Transforming Done.");
     }
 
