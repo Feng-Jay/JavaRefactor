@@ -19,22 +19,22 @@ public class Constant {
 
 //    public static String configFilePath = "/Users/ffengjay/Postgraduate/DataLeakage/src/dependencies/setting.properties";
 //
-//    static {
-//        Properties prop = new Properties();
-//        try{
-////            InputStream inputStream = new BufferedInputStream(new FileInputStream(HOME + "/src/main/resources/setting.properties"));
+    static {
+        Properties prop = new Properties();
+        try{
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(HOME + "/src/main/resources/setting.properties"));
 //            InputStream inputStream = new BufferedInputStream(new FileInputStream(Constant.configFilePath));
-//            prop.load(inputStream);
-//            renameMethod = prop.getProperty("renameMethod", "false").equals("true");
-//            renameVar = prop.getProperty("renameVar", "true").equals("true");
-//            transLoop = prop.getProperty("transLoop", "true").equals("true");
-//            switchToIf = prop.getProperty("switchToIf", "true").equals("true");
-//            insertLog = prop.getProperty("insertLog", "true").equals("true");
-//            reorderCondition = prop.getProperty("reorderCondition", "true").equals("true");
-//            negateCondition = prop.getProperty("negateCondition", "true").equals("true");
-//        } catch (IOException e) {
-//            logger.error("failed to load configure file...");
-//            throw new RuntimeException(e);
-//        }
-//    }
+            prop.load(inputStream);
+            renameMethod = prop.getProperty("renameMethod", "false").equals("true");
+            renameVar = prop.getProperty("renameVar", "true").equals("true");
+            transLoop = prop.getProperty("transLoop", "true").equals("true");
+            switchToIf = prop.getProperty("switchToIf", "true").equals("true");
+            insertLog = prop.getProperty("insertLog", "true").equals("true");
+            reorderCondition = prop.getProperty("reorderCondition", "true").equals("true");
+            negateCondition = prop.getProperty("negateCondition", "true").equals("true");
+        } catch (IOException e) {
+            logger.error("failed to load configure file...");
+            throw new RuntimeException(e);
+        }
+    }
 }
