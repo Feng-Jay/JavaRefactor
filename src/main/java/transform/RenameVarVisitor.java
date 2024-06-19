@@ -43,7 +43,7 @@ public class RenameVarVisitor extends ASTVisitor{
         SingleVariableDeclaration tmp = (SingleVariableDeclaration) ASTNode.copySubtree(node.getAST(), node);
         tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
 //        logger.info("SVD:" + node.toString());
-        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier() + "$" + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
+//        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier() + "$" + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
         _varCounter ++;
         return true;
     }
@@ -65,7 +65,7 @@ public class RenameVarVisitor extends ASTVisitor{
         _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
         VariableDeclarationFragment tmp = (VariableDeclarationFragment) ASTNode.copySubtree(node.getAST(), node);
         tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
-        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) +  "$" + node.getName().getIdentifier() +"$" + type + " " + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
+//        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) +  "$" + node.getName().getIdentifier() +"$" + type + " " + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
         _varCounter++;
         return true;
     }
