@@ -1,4 +1,5 @@
 import torch
+from pathlib import Path
 from accelerate import init_empty_weights, infer_auto_device_map, load_checkpoint_in_model, dispatch_model
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, \
     LlamaForCausalLM, CodeLlamaTokenizer
@@ -115,7 +116,8 @@ class GeneralLLM(object):
 
 
 def generate_output():
+    pass
 
 
 if __name__ == "__main__":
-    
+    bug_variables_dir = ""

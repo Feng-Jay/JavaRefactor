@@ -17,13 +17,13 @@ public class Constant {
     public static boolean reorderCondition = true;
     public static boolean negateCondition = true;
 
-//    public static String configFilePath = "/Users/ffengjay/Postgraduate/DataLeakage/src/dependencies/setting.properties";
+    public static String configFilePath = "/Users/ffengjay/Postgraduate/DataLeakage/src/dependencies/setting.properties";
 //
     static {
         Properties prop = new Properties();
         try{
-            InputStream inputStream = new BufferedInputStream(new FileInputStream(HOME + "/src/main/resources/setting.properties"));
-//            InputStream inputStream = new BufferedInputStream(new FileInputStream(Constant.configFilePath));
+//            InputStream inputStream = new BufferedInputStream(new FileInputStream(HOME + "/src/main/resources/setting.properties"));
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(Constant.configFilePath));
             prop.load(inputStream);
             renameMethod = prop.getProperty("renameMethod", "false").equals("true");
             renameVar = prop.getProperty("renameVar", "true").equals("true");

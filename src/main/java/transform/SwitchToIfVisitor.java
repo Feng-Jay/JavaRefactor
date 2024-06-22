@@ -127,7 +127,7 @@ public class SwitchToIfVisitor extends ASTVisitor {
             if (object instanceof SwitchCase) {
                 SwitchCase switchCase = (SwitchCase) object;
                 Expression expr = switchCase.getExpression();
-                if (expr instanceof SimpleName && expr.toString().matches("[A-Z]+")) {
+                if (expr instanceof SimpleName && expr.toString().equals(expr.toString().toUpperCase())) {
                     logger.info("Detect potential Enum used in switchCase, abort transformation...");
                     return true;
                 }

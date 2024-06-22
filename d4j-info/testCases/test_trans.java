@@ -1,34 +1,207 @@
 public class FAKECLASS{
-    public ValueMarker(double value, Paint paint, Stroke stroke,
-                       Paint outlinePaint, Stroke outlineStroke, float alpha) {
+    public JsonToken nextToken() throws IOException
+    {
+        // 23-May-2017, tatu: To be honest, code here is rather hairy and I don't like all
+        //    conditionals; and it seems odd to return `null` but NOT considering input
+        //    as closed... would love a rewrite to simplify/clear up logic here.
+
+        // Check for _allowMultipleMatches - false and at least there is one token - which is _currToken
+        // check for no buffered context _exposedContext - null
+        // If all the conditions matches then check for scalar / non-scalar property
+        if (!_allowMultipleMatches && (_currToken != null) && (_exposedContext == null)) {
+            //if not scalar and ended successfully, and !includePath, then return null
+            if (_currToken.isStructEnd()) {
+                if (_headContext.isStartHandled()) {
+                    return (_currToken = null);
+                }
+            } else if (_currToken.isScalarValue()) {
+                //else if scalar, and scalar not present in obj/array and !includePath and INCLUDE_ALL matched once
+                // then return null
+                if (!_headContext.isStartHandled() && (_itemFilter == TokenFilter.INCLUDE_ALL)) {
+                    return (_currToken = null);
+                }
+            }
+        }
+        // Anything buffered?
+        TokenFilterContext ctxt = _exposedContext;
+
+        if (ctxt != null) {
+            while (true) {
+                JsonToken t = ctxt.nextTokenToRead();
+                if (t != null) {
+                    _currToken = t;
+                    return t;
+                }
+                // all done with buffered stuff?
+                if (ctxt == _headContext) {
+                    _exposedContext = null;
+                    if (ctxt.inArray()) {
+                        t = delegate.getCurrentToken();
+// Is this guaranteed to work without further checks?
+//                        if (t != JsonToken.START_ARRAY) {
+                        _currToken = t;
+                        return t;
+                    }
+
+                    // Almost! Most likely still have the current token;
+                    // with the sole exception of
+                    /*
+                    t = delegate.getCurrentToken();
+                    if (t != JsonToken.FIELD_NAME) {
+                        _currToken = t;
+                        return t;
+                    }
+                    */
+                    break;
+                }
+                // If not, traverse down the context chain
+                ctxt = _headContext.findChildOf(ctxt);
+                _exposedContext = ctxt;
+                if (ctxt == null) { // should never occur
+                    throw _constructError("Unexpected problem: chain of filtered context broken");
+                }
+            }
+        }
+
+        // If not, need to read more. If we got any:
+        JsonToken t = delegate.nextToken();
+        if (t == null) {
+            // no strict need to close, since we have no state here
+            _currToken = t;
+            return t;
+        }
+
+        // otherwise... to include or not?
+        TokenFilter f;
+
         {
-			if (command == "start") {
-				System.out.println("Starting the application...");
-			} else if (command == "stop") {
-				System.out.println("Stopping the application...");
-			} else if (command == "restart") {
-				System.out.println("Restarting the application...");
-			} else if (command == "status") {
-				System.out.println("Checking status...");
-			} else if (command == "stats") {
-			}
-			if (command == "stats" || command == "report") {
-				{
-					if (subOption == 1) {
-						System.out.println("Generating quick report...");
-					} else if (subOption == 2) {
-						System.out.println("Generating detailed report...");
-					} else {
-						System.out.println("Unknown report option, generating standard report.");
+			if (t.id() == ID_START_ARRAY) {
+				f = _itemFilter;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					_headContext = _headContext.createChildArrayContext(f, true);
+					return (_currToken = t);
+				}
+				if (f == null) {
+					delegate.skipChildren();
+					break;
+				}
+				f = _headContext.checkValue(f);
+				if (f == null) {
+					delegate.skipChildren();
+					break;
+				}
+				if (f != TokenFilter.INCLUDE_ALL) {
+					f = f.filterStartArray();
+				}
+				_itemFilter = f;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					_headContext = _headContext.createChildArrayContext(f, true);
+					return (_currToken = t);
+				}
+				_headContext = _headContext.createChildArrayContext(f, false);
+				if (_includePath) {
+					t = _nextTokenWithBuffering(_headContext);
+					if (t != null) {
+						_currToken = t;
+						return t;
 					}
 				}
-			} else if (command == "config") {
-				System.out.println("Accessing configuration...");
-			} else if (command == "help") {
-				System.out.println("Available commands: start, stop, restart, status, stats, config, help");
+			} else if (t.id() == ID_START_OBJECT) {
+				f = _itemFilter;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					_headContext = _headContext.createChildObjectContext(f, true);
+					return (_currToken = t);
+				}
+				if (f == null) {
+					delegate.skipChildren();
+					break;
+				}
+				f = _headContext.checkValue(f);
+				if (f == null) {
+					delegate.skipChildren();
+					break;
+				}
+				if (f != TokenFilter.INCLUDE_ALL) {
+					f = f.filterStartObject();
+				}
+				_itemFilter = f;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					_headContext = _headContext.createChildObjectContext(f, true);
+					return (_currToken = t);
+				}
+				_headContext = _headContext.createChildObjectContext(f, false);
+				if (_includePath) {
+					t = _nextTokenWithBuffering(_headContext);
+					if (t != null) {
+						_currToken = t;
+						return t;
+					}
+				}
+			} else if (t.id() == ID_END_ARRAY) {
+			}
+			if (t.id() == ID_END_ARRAY || t.id() == ID_END_OBJECT) {
+				boolean returnEnd = _headContext.isStartHandled();
+				f = _headContext.getFilter();
+				if ((f != null) && (f != TokenFilter.INCLUDE_ALL)) {
+					f.filterFinishArray();
+				}
+				_headContext = _headContext.getParent();
+				_itemFilter = _headContext.getFilter();
+				if (returnEnd) {
+					return (_currToken = t);
+				}
+			} else if (t.id() == ID_FIELD_NAME) {
+				final String name = delegate.getCurrentName();
+				f = _headContext.setFieldName(name);
+				if (f == TokenFilter.INCLUDE_ALL) {
+					_itemFilter = f;
+					if (!_includePath) {
+						if (_includeImmediateParent && !_headContext.isStartHandled()) {
+							t = _headContext.nextTokenToRead();
+							_exposedContext = _headContext;
+						}
+					}
+					return (_currToken = t);
+				}
+				if (f == null) {
+					delegate.nextToken();
+					delegate.skipChildren();
+					break;
+				}
+				f = f.includeProperty(name);
+				if (f == null) {
+					delegate.nextToken();
+					delegate.skipChildren();
+					break;
+				}
+				_itemFilter = f;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					if (_includePath) {
+						return (_currToken = t);
+					}
+				}
+				if (_includePath) {
+					t = _nextTokenWithBuffering(_headContext);
+					if (t != null) {
+						_currToken = t;
+						return t;
+					}
+				}
 			} else {
-				System.out.println("Unknown command. Type 'help' for a list of valid commands.");
+				f = _itemFilter;
+				if (f == TokenFilter.INCLUDE_ALL) {
+					return (_currToken = t);
+				}
+				if (f != null) {
+					f = _headContext.checkValue(f);
+					if ((f == TokenFilter.INCLUDE_ALL) || ((f != null) && f.includeValue(delegate))) {
+						return (_currToken = t);
+					}
+				}
 			}
 		}
+
+        // We get here if token was not yet found; offlined handling
+        return _nextToken2();
     }
 }
