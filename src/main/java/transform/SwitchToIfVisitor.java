@@ -3,6 +3,7 @@ package transform;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
 
 import static utils.LLogger.logger;
 
@@ -11,8 +12,9 @@ import java.util.List;
 
 public class SwitchToIfVisitor extends ASTVisitor {
 
-    CompilationUnit _cu = null;
-    ASTRewrite _rewriter = null;
+    private CompilationUnit _cu = null;
+    private ASTRewrite _rewriter = null;
+    private boolean underSwitchStmt = false;
     public SwitchToIfVisitor(CompilationUnit cu, ASTRewrite rewriter){
         _cu = cu;
         _rewriter = rewriter;
@@ -116,8 +118,33 @@ public class SwitchToIfVisitor extends ASTVisitor {
         return firstExpression;
     }
 
+    private boolean isBreakable(ASTNode node){
+        return node instanceof ForStatement || node instanceof EnhancedForStatement || node instanceof WhileStatement || node instanceof DoStatement || node instanceof LabeledStatement;
+    }
+
+    @Override
+    public void postVisit(ASTNode node){
+        if (node instanceof SwitchStatement){
+            underSwitchStmt = false;
+        }
+        if (node instanceof BreakStatement && ((BreakStatement) node).getLabel() == null){
+//            logger.info(node.toString());
+            ASTNode parent = node.getParent();
+            while(parent != null){
+                if (parent instanceof SwitchStatement){
+                    _rewriter.remove(node, null);
+                }else if (isBreakable(node)){
+                    break;
+                }
+                parent = parent.getParent();
+            }
+        }
+        return;
+    }
+
     @Override
     public boolean visit(SwitchStatement node){
+        underSwitchStmt = true;
         AST ast = node.getAST();
 //        if (node.getExpression() instanceof MethodInvocation){
 //            logger.info("Can not decide methodInvocation's return type, abort transformation...");
@@ -181,13 +208,13 @@ public class SwitchToIfVisitor extends ASTVisitor {
                 if(statement instanceof Block){
                     Block block1 = (Block) statement;
                     for (Object stmt: block1.statements()){
-                        if(!(stmt instanceof BreakStatement))
+                        if(!(stmt instanceof BreakStatement && ((BreakStatement) stmt).getLabel() == null))
                             block.statements().add(ASTNode.copySubtree(ast, (ASTNode) stmt));
                         else
                             meetBreak = true;
                     }
                 }else{
-                    if(!(statement instanceof BreakStatement))
+                    if(!(statement instanceof BreakStatement && ((BreakStatement) statement).getLabel() == null))
                         block.statements().add(statement);
                     else
                         meetBreak = true;
@@ -223,7 +250,5 @@ public class SwitchToIfVisitor extends ASTVisitor {
         rewrite.replace(node, newBlock, null);
 
         return true;
-
-
     }
 }

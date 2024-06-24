@@ -1,6 +1,4 @@
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
@@ -11,6 +9,22 @@ import utils.JavaFile;
 import static utils.LLogger.logger;
 
 public class Main {
+
+    private static String wrapJavaCode(String javaCode){
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
+        parser.setSource(javaCode.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        if (!cu.types().isEmpty() && (cu.types().get(0) instanceof TypeDeclaration || cu.types().get(0) instanceof EnumDeclaration)){
+            return javaCode;
+        }else{
+            String prefix = "public class " + Constant.fakeClassName + "{\n";
+            String suffix = "\n}";
+//            logger.info("wrap java code into class:" + javaCode);
+            return prefix + javaCode + suffix;
+        }
+    }
+
     public static void main(String[] args){
         if (args.length != 2){
             logger.error("Illegal Parameters!!!");
@@ -22,6 +36,7 @@ public class Main {
         logger.info("OutputFilePath: " + Constant.transformedFilePath);
         logger.info("Please keep each java file only have one method!!!");
         String oriJavaContent = JavaFile.readFileToString(Constant.beforeFilePath);
+        oriJavaContent = wrapJavaCode(oriJavaContent);
         transform(oriJavaContent);
     }
     private static void transform(String javaCode){

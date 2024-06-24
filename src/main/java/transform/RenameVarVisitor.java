@@ -2,6 +2,7 @@ package transform;
 
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import utils.Constant;
 import utils.JavaFile;
 import utils.Scope;
 
@@ -85,7 +86,7 @@ public class RenameVarVisitor extends ASTVisitor{
     }
     @Override
     public boolean visit(TypeDeclaration node){
-        if(node.getName().toString().equals("FAKECLASS")){
+        if(node.getName().toString().equals(Constant.fakeClassName)){
             _rootScope = new Scope("RootScope", _cu.getLineNumber(node.getStartPosition()), _cu.getLineNumber(node.getStartPosition() + node.getLength()));
             _currentScope = _rootScope;
         }

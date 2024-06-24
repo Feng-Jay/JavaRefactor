@@ -16,6 +16,7 @@ public class Constant {
     public static boolean insertLog = true;
     public static boolean reorderCondition = true;
     public static boolean negateCondition = true;
+    public static String fakeClassName = "FAKECLASS";
 
     public static String configFilePath = "/Users/ffengjay/Postgraduate/DataLeakage/src/dependencies/setting.properties";
 //
@@ -32,6 +33,7 @@ public class Constant {
             insertLog = prop.getProperty("insertLog", "true").equals("true");
             reorderCondition = prop.getProperty("reorderCondition", "true").equals("true");
             negateCondition = prop.getProperty("negateCondition", "true").equals("true");
+            fakeClassName = prop.getProperty("fakeClassName", "FAKECLASS");
         } catch (IOException e) {
             logger.error("failed to load configure file...");
             throw new RuntimeException(e);
