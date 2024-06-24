@@ -95,4 +95,10 @@ else if (day == FRIDAY)
 
 We can directly find the transformed version can not pass the compiler. This project use a tricky way to solve this problem, it skip cases whose expression is all-uppercase.
 
+## Contribution
 
+Fell free to raise issues and submit pull requests! I will give you a quick response! :)
+
+## Acknowledgements
+
+Thanks to the [Defects4j](https://github.com/rjust/defects4j/) project for providing real world java codes.
