@@ -38,10 +38,17 @@ public class RenameVarVisitor extends ASTVisitor{
 
     @Override
     public boolean visit(SingleVariableDeclaration node){
-        _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
         // generate rename information
         SingleVariableDeclaration tmp = (SingleVariableDeclaration) ASTNode.copySubtree(node.getAST(), node);
-        tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
+        String newVarName = "TRANSVAR" + _varCounter;
+        String oriVarName = node.getName().toString();
+        if (Character.isUpperCase(oriVarName.charAt(0))){
+            newVarName += oriVarName;
+        }else{
+            newVarName += Character.toUpperCase(oriVarName.charAt(0)) + oriVarName.substring(1);
+        }
+        tmp.setName(node.getAST().newSimpleName(newVarName));
+        _currentScope.addVar(node.getName().getIdentifier(), newVarName);
 //        logger.info("SVD:" + node.toString());
 //        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier() + "$" + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt",true);
         _varCounter ++;
@@ -62,9 +69,16 @@ public class RenameVarVisitor extends ASTVisitor{
         }else{
             logger.info("Other types!");
         }
-        _currentScope.addVar(node.getName().getIdentifier(), "TRANSVAR"+_varCounter);
         VariableDeclarationFragment tmp = (VariableDeclarationFragment) ASTNode.copySubtree(node.getAST(), node);
-        tmp.setName(node.getAST().newSimpleName("TRANSVAR"+_varCounter));
+        String newVarName = "TRANSVAR" + _varCounter;
+        String oriVarName = node.getName().toString();
+        if (Character.isUpperCase(oriVarName.charAt(0))){
+            newVarName += oriVarName;
+        }else{
+            newVarName += Character.toUpperCase(oriVarName.charAt(0)) + oriVarName.substring(1);
+        }
+        _currentScope.addVar(node.getName().getIdentifier(), newVarName);
+        tmp.setName(node.getAST().newSimpleName(newVarName));
 //        JavaFile.writeFile(_cu.getLineNumber(node.getStartPosition()) +  "$" + node.getName().getIdentifier() +"$" + type + " " + node.toString() +"\n", "/Users/ffengjay/Postgraduate/JavaRefactor/tmp.txt", true);
         _varCounter++;
         return true;
@@ -106,7 +120,7 @@ public class RenameVarVisitor extends ASTVisitor{
     @Override
     public void postVisit(ASTNode node){
         if(node instanceof SimpleName && _currentScope.haveVar(node.toString())){
-            logger.info(node.toString() + "; parent: " + node.getParent().toString() + ", " + node.getParent().getClass());
+//            logger.info(node.toString() + "; parent: " + node.getParent().toString() + ", " + node.getParent().getClass());
             ASTNode parent = node.getParent();
             if (isVarReplace(node)){
                 AST ast = node.getAST();
