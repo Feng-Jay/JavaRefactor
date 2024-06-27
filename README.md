@@ -25,7 +25,7 @@ java -jar JavaRefactor.jar path/to/the/target/javafile.java path/to/the/transfor
 As shown, JavaRefactor accept two parameters: the first one is the path of the file need to be transformed, the second one is the path of transformed result.
 
 > [!NOTE]
-> The input file should be either a class which contains a function or just one function, here is an [example](https://github.com/Feng-Jay/JavaRefactor/blob/master/d4j-info/testCases/test.java)
+> The input file should be either a class which contains a function or just one function, here is an [example](https://github.com/Feng-Jay/JavaRefactor/blob/master/d4j-info/testCases/test.java).
 > You can set the behavior of JavaRefactor by modifying this [file](https://github.com/Feng-Jay/JavaRefactor/blob/master/src/main/resources/setting.properties).
 
 ## Implement Details
@@ -48,7 +48,7 @@ As shown, JavaRefactor accept two parameters: the first one is the path of the f
 
 ## Known Bug
 
-> ![CAUTION]
+> [!CAUTION]
 > The `SwitchToIf` module is complete, it will cause two types of bugs: 
 > 1. When encountered with Enumerate object in switchCase, JavaRefactor may trigger a `can not find symbol ...` error.
 > 2. Due to JavaRefactor change switchStatement to a bunch of IfStatement, compiler may not aware the equality of these, and report `uninitialized object` or `missing returnStatement` errors.
