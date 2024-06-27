@@ -16,16 +16,17 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 
 ## Usage
 
-This project is build by maven and has been test on Java11, you can import it directly import it to your IDE (IDEA, Eclipse...).
+This project is build by maven and has been tested on Java11. You can import it directly import it to your IDE (IDEA, Eclipse...), or directly use the [Jar file](https://github.com/Feng-Jay/JavaRefactor/blob/master/out/artifacts/JavaRefactor_jar/JavaRefactor.jar) like:
 
-Or you can use the [Jar file](https://github.com/Feng-Jay/JavaRefactor/blob/master/out/artifacts/JavaRefactor_jar/JavaRefactor.jar) in here.
+```bash
+java -jar JavaRefactor.jar path/to/the/target/javafile.java path/to/the/transformed/result.java
+```
 
-JavaRefactor accept two file paths, the first is the location of the file need to be transformed, the second is the location of transformed outcome.
+As shown, JavaRefactor accept two parameters: the first one is the path of the file need to be transformed, the second one is the path of transformed result.
 
-For now, the input file should be either a class which contains a function or just one function, there is an [example](https://github.com/Feng-Jay/JavaRefactor/blob/master/d4j-info/testCases/test.java)
-
-You can set the function of JavaRefactor by using this [setting file](https://github.com/Feng-Jay/JavaRefactor/blob/master/src/main/resources/setting.properties).
-
+> [!NOTE]
+> The input file should be either a class which contains a function or just one function, here is an [example](https://github.com/Feng-Jay/JavaRefactor/blob/master/d4j-info/testCases/test.java)
+> You can set the behavior of JavaRefactor by modifying this [file](https://github.com/Feng-Jay/JavaRefactor/blob/master/src/main/resources/setting.properties).
 
 ## Implement Details
 
@@ -47,9 +48,13 @@ You can set the function of JavaRefactor by using this [setting file](https://gi
 
 ## Known Bug
 
-The `SwithToIf` module is incomplete: 
+> ![CAUTION]
+> The `SwitchToIf` module is complete, it will cause two types of bugs: 
+> 1. When encountered with Enumerate object in switchCase, JavaRefactor may trigger a `can not find symbol ...` error.
+> 2. Due to JavaRefactor change switchStatement to a bunch of IfStatement, compiler may not aware the equality of these, and report `uninitialized object` or `missing returnStatement` errors.
+> The detailed explanations are below:
 
-When encountered with enum in switch cases, Java will inference the enum classes automatically, like this example from [Java tutorial](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html):
+1. When encountered with enum in switch cases, Java will inference the enum classes automatically, like this example from [Java tutorial](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html):
 
 ```java
 public class EnumTest {
@@ -94,6 +99,45 @@ else if (day == FRIDAY)
 ```
 
 We can directly find the transformed version can not pass the compiler. This project use a tricky way to solve this problem, it skip cases whose expression is all-uppercase.
+
+2. Uninitialized object or Missing ReturnStatement error
+
+```java
+...
+OneClass example;
+switch (expr):
+case x:
+    example = ...;
+    return null;
+case y:
+    example = ...;
+    return example;
+default:
+    example = ...;
+    return xxx;
+...
+```
+the transformed version of this will be:
+
+```java
+...
+OneClass example;
+if (condition1){
+    example = ...;
+    return null;
+}
+if (condition2){
+    example = ...;
+    return example;
+}
+if (condition3){
+    example = ...;
+    return xxx;
+}
+...
+```
+
+The compiler will report error after analysis even the semantic of this two versions of codes are identical. But these two kinds of codes are rare: only 4 bugs out of 438 defects4j bugs suffer from this.
 
 ## Contribution
 
