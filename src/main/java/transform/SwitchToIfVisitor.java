@@ -14,10 +14,14 @@ public class SwitchToIfVisitor extends ASTVisitor {
 
     private CompilationUnit _cu = null;
     private ASTRewrite _rewriter = null;
+    private AST _ast = null;
     private boolean underSwitchStmt = false;
+    private int flagCounter = 0;
+
     public SwitchToIfVisitor(CompilationUnit cu, ASTRewrite rewriter){
         _cu = cu;
         _rewriter = rewriter;
+        _ast = _cu.getAST();
     }
 
 //    @Override
@@ -117,6 +121,55 @@ public class SwitchToIfVisitor extends ASTVisitor {
         logger.info(firstExpression.toString());
         return firstExpression;
     }
+    public Expression makeIfCondition(SwitchCase switchCase, SwitchStatement switchStatement){
+        AST ast = switchStatement.getAST();
+        Expression oriExpr = makeInfixExpr((Expression) ASTNode.copySubtree(ast, switchStatement.getExpression()), (Expression) ASTNode.copySubtree(ast, switchCase.getExpression()), InfixExpression.Operator.EQUALS, ast);
+        ParenthesizedExpression wrapOriExpr = ast.newParenthesizedExpression();
+        wrapOriExpr.setExpression(oriExpr);
+        Expression andExpr = makeInfixExpr(ast.newSimpleName("TransBreakFlag" + flagCounter), wrapOriExpr, InfixExpression.Operator.CONDITIONAL_AND, ast);
+        ParenthesizedExpression wrapAndExpr = ast.newParenthesizedExpression();
+        wrapAndExpr.setExpression(andExpr);
+        Expression orExpr = makeInfixExpr(ast.newSimpleName("TransFallThroughFlag" + flagCounter), wrapAndExpr, InfixExpression.Operator.CONDITIONAL_OR, ast);
+        return orExpr;
+    }
+
+    private Statement makeFallThroughFlag(){
+        AST ast = _ast;
+        SimpleName simpleName = ast.newSimpleName("TransFallThroughFlag" + flagCounter);
+        BooleanLiteral initial = ast.newBooleanLiteral(false);
+        VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+        fragment.setName(simpleName);
+        fragment.setInitializer(initial);
+        VariableDeclarationStatement ret = ast.newVariableDeclarationStatement(fragment);
+        ret.setType(ast.newPrimitiveType(PrimitiveType.BOOLEAN));
+        return ret;
+    }
+
+    private Statement makeBreakFlag(){
+        AST ast = _ast;
+        SimpleName simpleName = ast.newSimpleName("TransBreakFlag" + flagCounter);
+        BooleanLiteral initial = ast.newBooleanLiteral(true);
+        VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+        fragment.setName(simpleName);
+        fragment.setInitializer(initial);
+        VariableDeclarationStatement ret = ast.newVariableDeclarationStatement(fragment);
+        ret.setType(ast.newPrimitiveType(PrimitiveType.BOOLEAN));
+        return ret;
+    }
+
+    private Statement makeAssignFallThroughFlag(){
+        Assignment assignment = _ast.newAssignment();
+        assignment.setLeftHandSide(_ast.newSimpleName("TransFallThroughFlag" + flagCounter));
+        assignment.setRightHandSide(_ast.newBooleanLiteral(true));
+        return _ast.newExpressionStatement(assignment);
+    }
+
+    private Statement makeAssignBreakFlag(){
+        Assignment assignment = _ast.newAssignment();
+        assignment.setLeftHandSide(_ast.newSimpleName("TransBreakFlag" + flagCounter));
+        assignment.setRightHandSide(_ast.newBooleanLiteral(false));
+        return _ast.newExpressionStatement(assignment);
+    }
 
     private boolean isBreakable(ASTNode node){
         return node instanceof ForStatement || node instanceof EnhancedForStatement || node instanceof WhileStatement || node instanceof DoStatement || node instanceof LabeledStatement;
@@ -127,7 +180,7 @@ public class SwitchToIfVisitor extends ASTVisitor {
         if (node instanceof SwitchStatement){
             underSwitchStmt = false;
         }
-        if (node instanceof BreakStatement && ((BreakStatement) node).getLabel() == null){
+        if (underSwitchStmt && node instanceof BreakStatement && ((BreakStatement) node).getLabel() == null){
 //            logger.info(node.toString());
             ASTNode parent = node.getParent();
             while(parent != null){
@@ -142,66 +195,83 @@ public class SwitchToIfVisitor extends ASTVisitor {
         return;
     }
 
+
     @Override
     public boolean visit(SwitchStatement node){
         underSwitchStmt = true;
         AST ast = node.getAST();
-//        if (node.getExpression() instanceof MethodInvocation){
-//            logger.info("Can not decide methodInvocation's return type, abort transformation...");
-//            return true;
-//        }
         for(Object object: node.statements()) {
             if (object instanceof SwitchCase) {
                 SwitchCase switchCase = (SwitchCase) object;
                 Expression expr = switchCase.getExpression();
                 if (expr instanceof SimpleName && expr.toString().equals(expr.toString().toUpperCase())) {
                     logger.info("Detect potential Enum used in switchCase, abort transformation...");
+                    underSwitchStmt = false;
                     return true;
                 }
             }
         }
+        ListRewrite rewrite = null;
+        ASTNode parent = node.getParent();
+        if(parent instanceof Block){
+            rewrite = _rewriter.getListRewrite(node.getParent(), Block.STATEMENTS_PROPERTY);
+        }else if(parent instanceof SwitchStatement){
+            rewrite = _rewriter.getListRewrite(node.getParent(), SwitchStatement.STATEMENTS_PROPERTY);
+        }else{
+            logger.info(String.valueOf(node.getParent().getClass()));
+        }
 
-        List<SwitchCase> candidateCases = new ArrayList<>();
-        List<Statement> insertedStatements = new ArrayList<>();
-        IfStatement firstIfStmt = null;
+        Statement fallThroughFlagDecl = makeFallThroughFlag();
+        Statement breakFlag = makeBreakFlag();
+
+        rewrite.insertBefore(fallThroughFlagDecl, node, null);
+        rewrite.insertBefore(breakFlag, node, null);
+
+        List<Statement> statements = node.statements();
+        if (node.statements().size() == 1 && node.statements().get(0) instanceof Block){
+            Block tmp = (Block) node.statements().get(0);
+            statements = tmp.statements();
+        }
+
         IfStatement lastIfStmt = null;
         boolean meetBreak = false;
-        for (Object object: node.statements()){
+        List<Statement> insertedStatements = new ArrayList<>();
+        for (Object object: statements){
             if (object instanceof SwitchCase){
-                logger.info(object.toString().replace("\n", "") + ";" + meetBreak + ";" + firstIfStmt);
-                if (!meetBreak && firstIfStmt != null){
-                    insertedStatements.add(firstIfStmt);
-                    firstIfStmt = null;
-//                    lastIfStmt = null;
-                }else{
-                    candidateCases.clear();
+                if (!meetBreak && lastIfStmt != null){
+                    Block block = (Block) lastIfStmt.getThenStatement();
+                    ListRewrite blockWriter = _rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+                    blockWriter.insertFirst(makeAssignFallThroughFlag(), null);
+                    insertedStatements.add(lastIfStmt);
+                }
+                if (meetBreak && lastIfStmt != null){
+                    Block block = (Block) lastIfStmt.getThenStatement();
+                    ListRewrite blockWriter = _rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+                    blockWriter.insertFirst(makeAssignBreakFlag(), null);
+                    insertedStatements.add(lastIfStmt);
                     meetBreak = false;
                 }
                 SwitchCase switchCase = (SwitchCase) object;
                 if (!switchCase.isDefault()){
-                    candidateCases.add((SwitchCase) object);
-                    Expression ifCondition = makeIfCondition(candidateCases, node);
+                    Expression ifCondition = makeIfCondition(switchCase, node);
                     IfStatement newIfStmt = ast.newIfStatement();
                     newIfStmt.setExpression(ifCondition);
-                    if (firstIfStmt == null){
-                        firstIfStmt = newIfStmt;
-                    }else{
-                        lastIfStmt.setElseStatement(newIfStmt);
-                    }
                     lastIfStmt = newIfStmt;
                 }else{
-                    Block elseBlock = ast.newBlock();
-                    lastIfStmt.setElseStatement(elseBlock);
+                    PrefixExpression lhs = ast.newPrefixExpression();
+                    lhs.setOperand(ast.newSimpleName("TransFallThroughFlag" + flagCounter));
+                    lhs.setOperator(PrefixExpression.Operator.NOT);
+                    Expression ifCondition = makeInfixExpr(lhs, ast.newSimpleName("TransBreakFlag" + flagCounter), InfixExpression.Operator.CONDITIONAL_AND, ast);
+                    IfStatement newIfstmt = ast.newIfStatement();
+                    newIfstmt.setExpression(ifCondition);
+                    lastIfStmt = newIfstmt;
                 }
             }else if (lastIfStmt != null){
                 Statement statement = (Statement) ASTNode.copySubtree(ast, (ASTNode) object);
                 Block block = null;
-                if(lastIfStmt.getElseStatement() != null){
-                    block = (Block) lastIfStmt.getElseStatement();
-                }else{
+                if (lastIfStmt.getThenStatement() != null){
                     block = (Block) lastIfStmt.getThenStatement();
-                }
-                if (block == null) {
+                }else{
                     block = ast.newBlock();
                     lastIfStmt.setThenStatement(block);
                 }
@@ -210,45 +280,115 @@ public class SwitchToIfVisitor extends ASTVisitor {
                     for (Object stmt: block1.statements()){
                         if(!(stmt instanceof BreakStatement && ((BreakStatement) stmt).getLabel() == null))
                             block.statements().add(ASTNode.copySubtree(ast, (ASTNode) stmt));
-                        else
+                        if(stmt instanceof BreakStatement)
                             meetBreak = true;
                     }
                 }else{
                     if(!(statement instanceof BreakStatement && ((BreakStatement) statement).getLabel() == null))
                         block.statements().add(statement);
-                    else
+                    if (statement instanceof BreakStatement)
                         meetBreak = true;
                 }
-
             }
         }
-        if (firstIfStmt != null){
-            insertedStatements.add(firstIfStmt);
-        }
-
-        logger.info(insertedStatements.toString());
-        ASTNode parent = node.getParent();
-        ListRewrite rewrite = null;
-        if(parent instanceof Block){
-            rewrite = _rewriter.getListRewrite(node.getParent(), Block.STATEMENTS_PROPERTY);
-        }else if(parent instanceof SwitchStatement){
-            rewrite = _rewriter.getListRewrite(node.getParent(), SwitchStatement.STATEMENTS_PROPERTY);
-        }else{
-            logger.info(String.valueOf(node.getParent().getClass()));
-        }
-//        logger.info(rewrite.getOriginalList().toString());
-//        for(Statement newStmt: insertedStatements){
-//            logger.info(String.valueOf(newStmt));
-//            rewrite.insertBefore(newStmt, node, null);
-//        }
-//        rewrite.remove(node, null);
+        insertedStatements.add(lastIfStmt);
         Block newBlock = ast.newBlock();
         for(Statement stmt: insertedStatements){
             newBlock.statements().add(stmt);
         }
+        flagCounter += 1;
         newBlock.accept(this);
         rewrite.replace(node, newBlock, null);
-
         return true;
+
+//        List<SwitchCase> candidateCases = new ArrayList<>();
+//        List<Statement> insertedStatements = new ArrayList<>();
+//        IfStatement firstIfStmt = null;
+//        IfStatement lastIfStmt = null;
+//        boolean meetBreak = false;
+//        for (Object object: node.statements()){
+//            if (object instanceof SwitchCase){
+//                logger.info(object.toString().replace("\n", "") + ";" + meetBreak + ";" + firstIfStmt);
+//                if (!meetBreak && firstIfStmt != null){
+//                    insertedStatements.add(firstIfStmt);
+//                    firstIfStmt = null;
+////                    lastIfStmt = null;
+//                }else{
+//                    candidateCases.clear();
+//                    meetBreak = false;
+//                }
+//                SwitchCase switchCase = (SwitchCase) object;
+//                if (!switchCase.isDefault()){
+//                    candidateCases.add((SwitchCase) object);
+//                    Expression ifCondition = makeIfCondition(candidateCases, node);
+//                    IfStatement newIfStmt = ast.newIfStatement();
+//                    newIfStmt.setExpression(ifCondition);
+//                    if (firstIfStmt == null){
+//                        firstIfStmt = newIfStmt;
+//                    }else{
+//                        lastIfStmt.setElseStatement(newIfStmt);
+//                    }
+//                    lastIfStmt = newIfStmt;
+//                }else{
+//                    Block elseBlock = ast.newBlock();
+//                    lastIfStmt.setElseStatement(elseBlock);
+//                }
+//            }else if (lastIfStmt != null){
+//                Statement statement = (Statement) ASTNode.copySubtree(ast, (ASTNode) object);
+//                Block block = null;
+//                if(lastIfStmt.getElseStatement() != null){
+//                    block = (Block) lastIfStmt.getElseStatement();
+//                }else{
+//                    block = (Block) lastIfStmt.getThenStatement();
+//                }
+//                if (block == null) {
+//                    block = ast.newBlock();
+//                    lastIfStmt.setThenStatement(block);
+//                }
+//                if(statement instanceof Block){
+//                    Block block1 = (Block) statement;
+//                    for (Object stmt: block1.statements()){
+//                        if(!(stmt instanceof BreakStatement && ((BreakStatement) stmt).getLabel() == null))
+//                            block.statements().add(ASTNode.copySubtree(ast, (ASTNode) stmt));
+//                        else
+//                            meetBreak = true;
+//                    }
+//                }else{
+//                    if(!(statement instanceof BreakStatement && ((BreakStatement) statement).getLabel() == null))
+//                        block.statements().add(statement);
+//                    else
+//                        meetBreak = true;
+//                }
+//
+//            }
+//        }
+//        if (firstIfStmt != null){
+//            insertedStatements.add(firstIfStmt);
+//        }
+//
+//        logger.info(insertedStatements.toString());
+//        ASTNode parent = node.getParent();
+//        ListRewrite rewrite = null;
+//        if(parent instanceof Block){
+//            rewrite = _rewriter.getListRewrite(node.getParent(), Block.STATEMENTS_PROPERTY);
+//        }else if(parent instanceof SwitchStatement){
+//            rewrite = _rewriter.getListRewrite(node.getParent(), SwitchStatement.STATEMENTS_PROPERTY);
+//        }else{
+//            logger.info(String.valueOf(node.getParent().getClass()));
+//        }
+////        logger.info(rewrite.getOriginalList().toString());
+////        for(Statement newStmt: insertedStatements){
+////            logger.info(String.valueOf(newStmt));
+////            rewrite.insertBefore(newStmt, node, null);
+////        }
+////        rewrite.remove(node, null);
+//        Block newBlock = ast.newBlock();
+//        for(Statement stmt: insertedStatements){
+//            newBlock.statements().add(stmt);
+//        }
+//        newBlock.accept(this);
+//        rewrite.replace(node, newBlock, null);
+//
+//        return true;
     }
 }

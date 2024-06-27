@@ -42,6 +42,7 @@ public class LoopTransVisitor extends ASTVisitor {
         newLoop.getBody().accept(this);
         return true;
     }
+
     @Override
     public boolean visit(ForStatement node){
         logger.info("enter for");
