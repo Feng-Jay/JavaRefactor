@@ -4,13 +4,16 @@ package transform;
 import utils.Constant;
 import utils.JavaFile;
 import utils.Scope;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
-
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static utils.LLogger.logger;
@@ -28,8 +31,11 @@ public class RenameVarVisitor extends ASTVisitor{
     public RenameVarVisitor(CompilationUnit cu, ASTRewrite rewrite){
         _cu = cu;
         _rewriter = rewrite;
-        try {
-            _varMap = new ObjectMapper().readValue(new File(Constant.jsonFilePath), Map.class);
+        _varMap = new HashMap<>();
+        try (FileReader reader = new FileReader(Constant.jsonFilePath)){
+            Gson gson = new Gson();
+            Type type = new TypeToken<Map<String, Object>>() {}.getType();
+            _varMap = gson.fromJson(reader, type);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -59,7 +65,7 @@ public class RenameVarVisitor extends ASTVisitor{
         String oriVarName = node.getName().toString();
         String key = _cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier();
         if (_varMap.containsKey(key)){
-            newVarName = _varMap.get(key);
+            newVarName = "TRANSVAR" + "_" + _varMap.get(key);
         }
         else if (Character.isUpperCase(oriVarName.charAt(0))){
             newVarName += oriVarName;
@@ -93,7 +99,7 @@ public class RenameVarVisitor extends ASTVisitor{
         String oriVarName = node.getName().toString();
         String key = _cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier();
         if (_varMap.containsKey(key)){
-            newVarName = _varMap.get(key);
+            newVarName = "TRANSVAR" + "_" + _varMap.get(key);
         }
         else if (Character.isUpperCase(oriVarName.charAt(0))){
             newVarName += oriVarName;
