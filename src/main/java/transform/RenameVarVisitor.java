@@ -1,10 +1,17 @@
 package transform;
 
-import org.eclipse.jdt.core.dom.*;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+
 import utils.Constant;
 import utils.JavaFile;
 import utils.Scope;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 import static utils.LLogger.logger;
 
@@ -16,9 +23,16 @@ public class RenameVarVisitor extends ASTVisitor{
     private Scope _rootScope = null;
     private Scope _currentScope = null;
 
+    private Map<String, String> _varMap = null;
+
     public RenameVarVisitor(CompilationUnit cu, ASTRewrite rewrite){
         _cu = cu;
         _rewriter = rewrite;
+        try {
+            _varMap = new ObjectMapper().readValue(new File(Constant.jsonFilePath), Map.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void addNewScope(int beginPos, int endPos){
@@ -43,7 +57,11 @@ public class RenameVarVisitor extends ASTVisitor{
         SingleVariableDeclaration tmp = (SingleVariableDeclaration) ASTNode.copySubtree(node.getAST(), node);
         String newVarName = "TRANSVAR" + _varCounter;
         String oriVarName = node.getName().toString();
-        if (Character.isUpperCase(oriVarName.charAt(0))){
+        String key = _cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier();
+        if (_varMap.containsKey(key)){
+            newVarName = _varMap.get(key);
+        }
+        else if (Character.isUpperCase(oriVarName.charAt(0))){
             newVarName += oriVarName;
         }else{
             newVarName += Character.toUpperCase(oriVarName.charAt(0)) + oriVarName.substring(1);
@@ -73,7 +91,11 @@ public class RenameVarVisitor extends ASTVisitor{
         VariableDeclarationFragment tmp = (VariableDeclarationFragment) ASTNode.copySubtree(node.getAST(), node);
         String newVarName = "TRANSVAR" + _varCounter;
         String oriVarName = node.getName().toString();
-        if (Character.isUpperCase(oriVarName.charAt(0))){
+        String key = _cu.getLineNumber(node.getStartPosition()) + "$" + node.getName().getIdentifier();
+        if (_varMap.containsKey(key)){
+            newVarName = _varMap.get(key);
+        }
+        else if (Character.isUpperCase(oriVarName.charAt(0))){
             newVarName += oriVarName;
         }else{
             newVarName += Character.toUpperCase(oriVarName.charAt(0)) + oriVarName.substring(1);

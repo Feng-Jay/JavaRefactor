@@ -17,8 +17,8 @@ public class Constant {
     public static boolean reorderCondition = true;
     public static boolean negateCondition = true;
     public static String fakeClassName = "FAKECLASS";
-
     public static String configFilePath = "/Users/ffengjay/Postgraduate/DataLeakage/src/dependencies/setting.properties";
+    public static String jsonFilePath = "";
 //
     static {
         Properties prop = new Properties();
