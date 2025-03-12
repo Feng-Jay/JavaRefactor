@@ -18,7 +18,7 @@ JavaRefactor is a tool that can refactor java code while keeping original semant
 
 ## Usage
 
-This project is build by maven and has been tested on Java11. You can import it directly import it to your IDE (IDEA, Eclipse...), or directly use the [Jar file](https://github.com/Feng-Jay/JavaRefactor/blob/master/out/artifacts/JavaRefactor_jar/JavaRefactor.jar) like:
+This project is build by maven and has been tested on Java11. You can import it directly into your IDE (IDEA, Eclipse...), or directly use the [Jar file](https://github.com/Feng-Jay/JavaRefactor/blob/master/out/artifacts/JavaRefactor_jar/JavaRefactor.jar) like:
 
 ```bash
 java -jar JavaRefactor.jar path/to/the/target/javafile.java path/to/the/transformed/result.java
