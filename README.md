@@ -1,5 +1,7 @@
 # JavaRefactor [![Build, Test and Depoly](https://github.com/Feng-Jay/JavaRefactor/actions/workflows/maven.yml/badge.svg)](https://github.com/Feng-Jay/JavaRefactor/actions/workflows/maven.yml)
 
+JavaRefactor is used in our paper [Evaluating the Generalizability of LLMs in Automated Program Repair-ICSE2025-NIER](https://conf.researchr.org/track/icse-2025/icse-2025-nier)! If you think this repo is helpful, pls cite us😜!
+
 JavaRefactor is a tool that can refactor java code while keeping original semantic.
 
 ## Supported Refactor Methods
